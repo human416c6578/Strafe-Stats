@@ -85,12 +85,12 @@ public FM_PlayerPreThink_Pre(id)
             {
                 set_hudmessage(0, 100, 255, -1.0, 0.75, 0, 0.0, 2.0, 0.2, 0.2, 3);
                 ShowSyncHudMsg(id, g_iMainHudSync, "Strafes: %i^nSync: %i%%",\
-                g_fMaxSpeed[id], g_fMaxSpeed[id] - g_fPreStrafe[id], g_fPreStrafe[id], g_iStrafes[id], iSync);
+                g_iStrafes[id], iSync);
             }
             if(g_bConsoleLog[id])
             {
                 console_print(id, "Strafes: %i Sync: %i%%",\
-                g_fMaxSpeed[id], g_fMaxSpeed[id] - g_fPreStrafe[id], g_fPreStrafe[id], g_iStrafes[id], iSync);
+                g_iStrafes[id], iSync);
             }
             
             static szStrafesInfo[32 * MAX_STRAFES], iLen;
@@ -119,12 +119,12 @@ public FM_PlayerPreThink_Pre(id)
                     {
                         set_hudmessage(0, 100, 255, -1.0, 0.75, 0, 0.0, 2.0, 0.2, 0.2, 4);
                         ShowSyncHudMsg(i, g_iMainHudSync, "Strafes: %i^nSync: %i%%",\
-                        g_fMaxSpeed[id], g_fMaxSpeed[id] - g_fPreStrafe[id], g_fPreStrafe[id], g_iStrafes[id], iSync);
+                        g_iStrafes[id], iSync);
                     }
                     if(g_bConsoleLog[i])
                     {
                         console_print(i, "Strafes: %i Sync: %i%%",\
-                        g_fMaxSpeed[id], g_fMaxSpeed[id] - g_fPreStrafe[id], g_fPreStrafe[id], g_iStrafes[id], iSync);
+                        g_iStrafes[id], iSync);
                     }
                     if(g_bStrafeStat[i])
                     {
