@@ -84,12 +84,12 @@ public FM_PlayerPreThink_Pre(id)
             if(g_bMainStat[id])
             {
                 set_hudmessage(0, 100, 255, -1.0, 0.75, 0, 0.0, 2.0, 0.2, 0.2, 3);
-                ShowSyncHudMsg(id, g_iMainHudSync, "MaxSpeed: %.3f (%.3f)^nPreStrafe: %.3f^nStrafes: %i^nSync: %i%%",\
+                ShowSyncHudMsg(id, g_iMainHudSync, "Strafes: %i^nSync: %i%%",\
                 g_fMaxSpeed[id], g_fMaxSpeed[id] - g_fPreStrafe[id], g_fPreStrafe[id], g_iStrafes[id], iSync);
             }
             if(g_bConsoleLog[id])
             {
-                console_print(id, "MaxSpeed: %.3f (%.3f) PreStrafe: %.3f Strafes: %i Sync: %i%%",\
+                console_print(id, "Strafes: %i Sync: %i%%",\
                 g_fMaxSpeed[id], g_fMaxSpeed[id] - g_fPreStrafe[id], g_fPreStrafe[id], g_iStrafes[id], iSync);
             }
             
@@ -118,12 +118,12 @@ public FM_PlayerPreThink_Pre(id)
                     if(g_bMainStat[i])
                     {
                         set_hudmessage(0, 100, 255, -1.0, 0.75, 0, 0.0, 2.0, 0.2, 0.2, 4);
-                        ShowSyncHudMsg(i, g_iMainHudSync, "MaxSpeed: %.3f (%.3f)^nPreStrafe: %.3f^nStrafes: %i^nSync: %i%%",\
+                        ShowSyncHudMsg(i, g_iMainHudSync, "Strafes: %i^nSync: %i%%",\
                         g_fMaxSpeed[id], g_fMaxSpeed[id] - g_fPreStrafe[id], g_fPreStrafe[id], g_iStrafes[id], iSync);
                     }
                     if(g_bConsoleLog[i])
                     {
-                        console_print(i, "MaxSpeed: %.3f (%.3f) PreStrafe: %.3f Strafes: %i Sync: %i%%",\
+                        console_print(i, "Strafes: %i Sync: %i%%",\
                         g_fMaxSpeed[id], g_fMaxSpeed[id] - g_fPreStrafe[id], g_fPreStrafe[id], g_iStrafes[id], iSync);
                     }
                     if(g_bStrafeStat[i])
