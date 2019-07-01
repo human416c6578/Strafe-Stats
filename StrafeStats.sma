@@ -44,7 +44,7 @@ public client_putinserver(id)
 
 public FM_PlayerPreThink_Pre(id)
 {
-    if(!is_user_alive(id)) return FMRES_IGNORED;
+    //if(!is_user_alive(id)) return FMRES_IGNORED;
     
     static iButtons; iButtons = pev(id, pev_button);
     static bool:bOnGround; bOnGround = bool:(pev(id, pev_flags) & FL_ONGROUND);
