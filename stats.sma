@@ -6,13 +6,14 @@
 #define VERSION "1.0"
 #define AUTHOR "MrShark45"
 
-#define MAX_STRAFES 256
+#define MAX_STRAFES 60
 #define TOUCHING_GROUND (1<<9)
 
 new bool:g_bJumped[33], bool:g_bOldOnGround[33];
 new Float:g_fOldAngles[33], Float:g_fOldSpeed[33];
 new g_iGoodSync[33], g_iStrafes[33], g_iSyncFrames[33], g_iMainHudSync, g_iStrafeHudSync;
 new g_iStrafeFrames[33][MAX_STRAFES], g_iStrafeGoodSync[33][MAX_STRAFES];
+new Float:g_fStrafeGain[33][MAX_STRAFES];
 new bool:g_bStrafingAw[33], bool:g_bStrafingSd[33];
 
 new Float:fOldJumpSpeed[33];
@@ -30,21 +31,25 @@ public plugin_init(){
 	g_iMainHudSync = CreateHudSyncObj();
 	g_iStrafeHudSync = CreateHudSyncObj();
 
-
 	register_forward(FM_PlayerPreThink, "FM_PlayerPreThink_Pre", 0);
 	register_forward(FM_PlayerPostThink, "FM_PlayerPostThink_Pre", 0);
 
 }
 
 public plugin_natives(){
+	register_library("strafe_stats");
+
 	register_native("get_user_sync", "native_get_user_sync");
 
 	register_native("get_user_strafes", "native_get_user_strafes");
 
 	register_native("display_stats", "native_display_stats");
+
+	register_native("get_bool_stats", "native_get_bool_stats");
+	register_native("toggle_stats", "native_toggle_stats");
 }
 
-public native_get_user_sync(id, NumParams) {
+public native_get_user_sync(NumParams) {
 	new id = get_param(1);
 
 	new sync = g_iNativeSync[id];
@@ -53,7 +58,7 @@ public native_get_user_sync(id, NumParams) {
 	return sync;
 }
 
-public native_get_user_strafes(id, NumParams) {
+public native_get_user_strafes(NumParams) {
 	new id = get_param(1);
 	
 	new strafes = g_iNativeStrafes[id];
@@ -62,7 +67,7 @@ public native_get_user_strafes(id, NumParams) {
 	return strafes;
 }
 
-public native_display_stats(id, NumParams) {
+public native_display_stats(NumParams) {
 	
 	new id = get_param(1);
 	new strafes = get_param(2);
@@ -76,13 +81,24 @@ public native_display_stats(id, NumParams) {
 		{
 			set_hudmessage(0, 100, 255, -1.0, 0.6, 0, 0.0, 2.0, 0.2, 0.2, -1);
 			ShowSyncHudMsg(i, g_iMainHudSync, "Strafes: %i^nSync: %i%%", strafes, sync);
-        }
+		}
 	}
+}
+
+public native_get_bool_stats(NumParams){
+	new id = get_param(1);
+	return b_show_stats[id];
+}
+
+public native_toggle_stats(NumParams){
+	new id = get_param(1);
+	toggle_stats(id);
 }
 
 public client_putinserver(id){
 	b_show_stats[id] = false;
 }
+
 
 public toggle_stats(id){
 	b_show_stats[id] = !b_show_stats[id];
@@ -107,11 +123,14 @@ public FM_PlayerPreThink_Pre(id){
 		g_iSyncFrames[id] = 0;
 		
 		g_iStrafes[id] = 0;
+
 		
-		for(new i = 0; i < 32; i++)
+		
+		for(new i = 0; i < MAX_STRAFES; i++)
 		{
 			g_iStrafeGoodSync[id][i] = 0;
 			g_iStrafeFrames[id][i] = 0;
+			g_fStrafeGain[id][i] = 0.0;
 		}
 	}
 	else if(bOnGround && g_bJumped[id] && !g_bOldOnGround[id])
@@ -126,23 +145,33 @@ public FM_PlayerPreThink_Pre(id){
 			g_iNativeSync[id] = iSync;
 
 			if(b_show_stats[id]){
-				set_hudmessage(0, 100, 255, -1.0, 0.6, 0, 0.0, 2.0, 0.2, 0.2, 3);
-
-                ShowSyncHudMsg(id, g_iMainHudSync, "Strafes: %i^nSync: %i%%", g_iStrafes[id], iSync);
-
-                /*
-                static szStrafesInfo[32 * MAX_STRAFES], iLen;
+				static szStrafesInfo[32 * MAX_STRAFES], iLen;
+				static szStrafesInfo2[32 * MAX_STRAFES], iLen2;
+				static iFrames = 0, iGoodFrames = 0;
+				static Float:fGain;
 				szStrafesInfo = "^0"; iLen = 0;
+				iFrames = 0; iGoodFrames = 0; fGain = 0.0;
 				for(new i = 0; i < g_iStrafes[id] && i < MAX_STRAFES; i++)
 				{
-					iLen += formatex(szStrafesInfo[iLen], charsmax(szStrafesInfo) - iLen, "Strafe: %i^tSync: %i%%^n",\
-				i + 1, floatround(100.0 * g_iStrafeGoodSync[id][i] / g_iStrafeFrames[id][i]));
+					iLen += formatex(szStrafesInfo[iLen], charsmax(szStrafesInfo) - iLen, "Strafe: %i^tSync: %i^n",
+						i + 1, floatround(100.0 * g_iStrafeGoodSync[id][i] / g_iStrafeFrames[id][i]));
+					iLen2 += formatex(szStrafesInfo2[iLen], charsmax(szStrafesInfo2) - iLen, "Strafe: %i^tSync: %i%^tFrames: %d/%d^tGain: %.2f^n",
+						i + 1, floatround(100.0 * g_iStrafeGoodSync[id][i] / g_iStrafeFrames[id][i]), g_iStrafeGoodSync[id][i], g_iStrafeFrames[id][i], g_fStrafeGain[id][i]);
+
+					iFrames += g_iStrafeFrames[id][i];
+					iGoodFrames += g_iStrafeGoodSync[id][i];
+					fGain += g_fStrafeGain[id][i];
 				}
 		
 				set_hudmessage(200, 22, 22, 0.77, 0.4, 0, 0.0, 2.0, 0.2, 0.2, 4);
 				ShowSyncHudMsg(id, g_iStrafeHudSync, "%s", szStrafesInfo);
-                */
-            }
+				client_print(id, print_console, szStrafesInfo2);
+
+
+				set_hudmessage(0, 100, 255, -1.0, 0.6, 0, 0.0, 2.0, 0.2, 0.2, 3);
+				ShowSyncHudMsg(id, g_iMainHudSync, "Strafes: %i^nSync: %i%^nFrames: %d/%d^nGain: %.2f", g_iStrafes[id], iSync, iGoodFrames, iFrames, fGain);
+				client_print(id, print_console, "Strafes: %i^nSync: %i%^nFrames: %d/%d^nGain: %.2f^nGain/Strafe: %.2f^nGain/GoodFrames: %.2f", g_iStrafes[id], iSync, iGoodFrames, iFrames, fGain, fGain/g_iStrafes[id], fGain/iGoodFrames);
+			}
 			
 			
 			for(new i = 1; i < 33; i++)
@@ -151,22 +180,34 @@ public FM_PlayerPreThink_Pre(id){
 				
 				if( pev(i, pev_iuser2) == id )
 				{
-					set_hudmessage(0, 100, 255, -1.0, 0.6, 0, 0.0, 2.0, 0.2, 0.2, 3);
-					ShowSyncHudMsg(i, g_iMainHudSync, "Strafes: %i^nSync: %i%%", g_iStrafes[id], iSync);
-
-                    /*
 					static szStrafesInfo[32 * MAX_STRAFES], iLen;
+					static szStrafesInfo2[32 * MAX_STRAFES], iLen2;
+					static iFrames = 0, iGoodFrames = 0;
+					static Float:fGain;
 					szStrafesInfo = "^0"; iLen = 0;
+					szStrafesInfo2 = "^0"; iLen2 = 0;
+					iFrames = 0; iGoodFrames = 0; fGain = 0.0;
 					for(new j = 0; j < g_iStrafes[id] && j < MAX_STRAFES; j++)
 					{
-						iLen += formatex(szStrafesInfo[iLen], charsmax(szStrafesInfo) - iLen, "Strafe: %i^tSync: %i%%^n",\
-						j + 1, floatround(100.0 * g_iStrafeGoodSync[id][j] / g_iStrafeFrames[id][j]));
+						iLen += formatex(szStrafesInfo[iLen], charsmax(szStrafesInfo) - iLen, "Strafe: %i^tSync: %i%^n",
+							j + 1, floatround(100.0 * g_iStrafeGoodSync[id][j] / g_iStrafeFrames[id][j]));
+						iLen2 += formatex(szStrafesInfo2[iLen2], charsmax(szStrafesInfo2) - iLen2, "Strafe: %i^tSync: %i%^tFrames: %d/%d^tGain: %.2f^n",
+							j + 1, floatround(100.0 * g_iStrafeGoodSync[id][j] / g_iStrafeFrames[id][j]), g_iStrafeGoodSync[id][j], g_iStrafeFrames[id][j], g_fStrafeGain[id][j]);
+
+						iFrames += g_iStrafeFrames[id][j];
+						iGoodFrames += g_iStrafeGoodSync[id][j];
+						fGain += g_fStrafeGain[id][j];
 					}
-		
+
 					set_hudmessage(200, 22, 22, 0.77, 0.4, 0, 0.0, 2.0, 0.2, 0.2, 4);
 					ShowSyncHudMsg(i, g_iStrafeHudSync, "%s", szStrafesInfo);
-                    */
-                }
+					client_print(i, print_console, "%s", szStrafesInfo2);
+
+
+					set_hudmessage(0, 100, 255, -1.0, 0.6, 0, 0.0, 2.0, 0.2, 0.2, 3);
+					ShowSyncHudMsg(i, g_iMainHudSync, "Strafes: %i^nSync: %i%^nFrames: %d/%d^nGain: %.2f", g_iStrafes[id], iSync, iGoodFrames, iFrames, fGain);
+					client_print(i, print_console, "Strafes: %i^nSync: %i%^nFrames: %d/%d^nGain: %.2f^nGain/Strafe: %.2f^nGain/GoodFrames: %.2f", g_iStrafes[id], iSync, iGoodFrames, iFrames, fGain, fGain/g_iStrafes[id], fGain/iGoodFrames);
+				}
 			}
 
 			fOldJumpSpeed[id] = fSpeed;
@@ -228,24 +269,27 @@ public FM_PlayerPostThink_Pre(id){
 			
 			g_iStrafes[id]++;
 		}
-	}
-	if(g_fOldSpeed[id] < fSpeed)
-	{
-		g_iGoodSync[id]++;
+
+		if(g_fOldSpeed[id] < fSpeed)
+		{
+			g_iGoodSync[id]++;
+			if(g_iStrafes[id])
+			{
+				g_iStrafeGoodSync[id][g_iStrafes[id] - 1]++;
+				g_fStrafeGain[id][g_iStrafes[id] - 1] += (fSpeed - g_fOldSpeed[id]);
+			}
+		}
+
+		g_iSyncFrames[id]++;
+
 		if(g_iStrafes[id])
 		{
-			g_iStrafeGoodSync[id][g_iStrafes[id] - 1]++;
+			g_iStrafeFrames[id][g_iStrafes[id] - 1]++;
 		}
-	}
 
-	g_iSyncFrames[id]++;
-	
-	if(g_iStrafes[id])
-	{
-		g_iStrafeFrames[id][g_iStrafes[id] - 1]++;
+		g_fOldSpeed[id] = fSpeed;
 	}
 	
-	g_fOldSpeed[id] = fSpeed;
 
 	return FMRES_IGNORED;
 }
