@@ -92,7 +92,15 @@ public native_toggle_stats(NumParams){
 
 public client_putinserver(id){
 	b_show_stats[id] = false;
-	b_pre_stats[id] = false; 
+	b_pre_stats[id] = false;
+
+	g_userConnected[id] = true;
+	b_pre_stats[id] = false;
+
+	ddnum[id] = 0;
+	bhopgainspeed[id] = 0.0;
+	prebhopspeed[id] = 0.0;
+	preladderspeed[id] = 0.0;
 }
 
 
@@ -257,17 +265,6 @@ public FwdPlayerSpawn(id)
 public FwdPlayerDeath(id)
 {
     g_alive[id] = false;
-}
-
-public client_connect(player)
-{
-    g_userConnected[player] = true;
-    b_pre_stats[player] = false;
-
-    ddnum[player] = 0;
-    bhopgainspeed[player] = 0.0;
-    prebhopspeed[player] = 0.0;
-    preladderspeed[player] = 0.0;
 }
 
 public client_disconnected(id) {
