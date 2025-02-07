@@ -220,8 +220,8 @@ public fwdPreThink(id) {
         in_air[id] = g_Jumped[id] = true;
         prebhopspeed[id] = 0.0;
 
-        set_hudmessage(0, 60, 255, -1.0, 0.643, 0, 0.02, 1.0, 0.01, 0.1, 4);
-        show_hudmessage(id, "Ladderjump: %d", floatround(speed[id]));
+        set_hudmessage(0, 100, 255, -1.0, 0.700, 0, 0.02, 1.0, 0.01, 0.1, 4);
+        ShowSyncHudMsg(id, g_iMainHudSync, "Ladderjump: %d", floatround(speed[id]));
     }
 
     if ((button & IN_JUMP) && !(oldbuttons & IN_JUMP) && (flags & FL_ONGROUND)) {
@@ -235,8 +235,8 @@ public fwdPreThink(id) {
                 bhopgainspeed[id] = preladderspeed[id];
                 preladderspeed[id] = 0.0;
             } else if (bhopgainspeed[id] == 0.0 || bhopgainspeed[id] == speed[id]) {
-                set_hudmessage(5, 60, 255, -1.0, 0.643, 0, 0.0, 1.0, 0.1, 0.1, 4);
-                show_hudmessage(id, "Prestrafe: %d", floatround(speed[id]));
+                set_hudmessage(0, 100, 255, -1.0, 0.700, 0, 0.0, 1.0, 0.1, 0.1, 4);
+                ShowSyncHudMsg(id, g_iMainHudSync, "Prestrafe: %d", floatround(speed[id]));
             }
         }
         bhopgainspeed[id] = speed[id];
