@@ -98,28 +98,13 @@ public client_putinserver(id){
 
 public toggle_stats(id){
 	b_show_stats[id] = !b_show_stats[id];
-
-	if(!b_show_stats[id]) 
-	{
-		CC_SendMessage(id, "&x01Stats: &x07OFF");
-	}
-	else 
-	{
-		CC_SendMessage(id, "&x01Stats: &x06ON"); 
-	}
+	CC_SendMessage(id, b_show_stats[id] ? "&x01Stats: &x06ON" : "&x01Stats: &x07OFF");
 }
 
-public toggle_pre(id){
+public toggle_pre(id)
+{
 	b_pre_stats[id] = !b_pre_stats[id];
-
-	if(!b_pre_stats[id]) 
-	{
-		CC_SendMessage(id, "&x01ShowPre: &x07OFF");
-	} 
-	else 
-	{
-		CC_SendMessage(id, "&x01ShowPre: &x06ON"); 
-	}
+	CC_SendMessage(id, b_pre_stats[id] ? "&x01ShowPre: &x06ON" : "&x01ShowPre: &x07OFF");
 }
 
 public fwPlayerStrafe(id, strafes, sync, strafesSync[], strafeLen, frames, goodFrames, Float:gain, overlaps){
