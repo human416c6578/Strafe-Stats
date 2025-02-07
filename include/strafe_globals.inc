@@ -25,4 +25,3 @@ new Float:bhopgainspeed[33];
 
 new ddnum[33];
 new bhop_num[33];
-new movetype[33];

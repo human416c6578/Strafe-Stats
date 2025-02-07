@@ -177,127 +177,87 @@ public fwPlayerStrafe(id, strafes, sync, strafesSync[], strafeLen, frames, goodF
 	}
 }
 
-public fwdPreThink(id){
+public fwdPreThink(id) {
     static bool:in_air[33];
 
-    if(g_userConnected[id] == true)
-    {   
-        if(g_alive[id])
-        {
-            if(g_reset[id] == true)
-            {
-                g_reset[id] = false;
-                g_Jumped[id] = false;
-                in_air[id] = false;
-                notjump[id] = false;
-                ladderjump[id] = false;
-            }
-            
-            static button, oldbuttons, flags;
-            button = pev(id, pev_button );
-            flags = pev(id, pev_flags );
-            oldbuttons = pev(id, pev_oldbuttons );
-            
-            new Float:velocity[3];
-            pev(id, pev_velocity, velocity);
-            movetype[id] = pev(id, pev_movetype);
-            
-            if(flags & FL_ONGROUND && flags & FL_INWATER)  
-                velocity[2] = 0.0;
-            if(velocity[2] != 0)
-                velocity[2] -= velocity[2];
-                
-            speed[id] = vector_length(velocity);  
-            
-            if(notjump[id])
-            {
-                notjump[id] = false;
-            }
-            
-            if(flags & FL_ONGROUND)
-            {
-                notjump[id] = true;
-            }
+    if (!g_userConnected[id] || !g_alive[id])
+        return FMRES_IGNORED;
 
-            if((movetype[id] == MOVETYPE_FLY) && (button & IN_FORWARD || button & IN_BACK || button & IN_LEFT || button & IN_RIGHT))
-            {
-                ladderjump[id] = true;
-            }
-            
-            if((movetype[id] == MOVETYPE_FLY) && button & IN_JUMP)
-            {
-                ladderjump[id] = false;
-                in_air[id] = false;
-                notjump[id] = true;
-            }
-            
-            if(movetype[id] != MOVETYPE_FLY && ladderjump[id] == true)
-            {
-                notjump[id] = true;
-                ladderjump[id] = false;    
-
-                in_air[id] = true;
-                g_Jumped[id] = true;
-                prebhopspeed[id] = 0.0;
-                
-                set_hudmessage(0, 60, 255, -1.0, 0.643, 0, 0.02, 1.0, 0.01, 0.1, 4);
-                show_hudmessage(id , "Ladderjump: %d", floatround(speed[id]));
-            }
-            
-            if(button & IN_JUMP && !(oldbuttons & IN_JUMP) && flags & FL_ONGROUND)
-            {   
-                bhop_num[id]++;
-                notjump[id] = false;
-
-                ddnum[id] = 0;
-                pev(id, pev_velocity, velocity);
-                in_air[id] = true;
-                g_Jumped[id] = true;
-        
-                if(b_pre_stats[id])
-                {
-                    if(bhop_num[id] > 0) 
-                    {
-                        if(floatround(preladderspeed[id]) > 20) 
-                        {
-                            bhopgainspeed[id] = preladderspeed[id];                                        
-                            preladderspeed[id] = 0.0;
-                        }               
-                        else if(bhopgainspeed[id] == 0.0 || bhopgainspeed[id] == speed[id]) 
-                        {
-                            set_hudmessage(5, 60, 255, -1.0, 0.643, 0, 0.0, 1.0, 0.1, 0.1, 4);
-                            show_hudmessage(id , "Prestrafe: %d", floatround(speed[id]));
-                        }
-                    }
-                }
-                bhopgainspeed[id] = speed[id];
-            }
-            else if(flags & FL_ONGROUND && in_air[id])
-            {   
-                g_reset[id] = true;
-            }
-            
-            if(flags & FL_ONGROUND && firstfall_ground[id] == true && get_gametime() - FallTime[id] > 0.5)
-            {
-                ddnum[id] = 0;
-                bhop_num[id] = 0;
-                firstfall_ground[id] = false;
-                prebhopspeed[id] = 0.0;
-                bhopgainspeed[id] = 0.0;
-                preladderspeed[id] = 0.0;
-            }
-            
-            if(flags & FL_ONGROUND && firstfall_ground[id] == false)
-            {
-                FallTime[id] = get_gametime();
-                firstfall_ground[id] = true;
-            }
-            else if(!(flags & FL_ONGROUND) && firstfall_ground[id] == true)
-            {
-                firstfall_ground[id] = false;
-            }   
-        }
+    if (g_reset[id]) {
+        g_reset[id] = g_Jumped[id] = in_air[id] = notjump[id] = ladderjump[id] = false;
     }
+
+    static button, oldbuttons, flags, movetype;
+    static Float:velocity[3];
+
+    button = pev(id, pev_button);
+    flags = pev(id, pev_flags);
+    oldbuttons = pev(id, pev_oldbuttons);
+    pev(id, pev_velocity, velocity);
+    movetype = pev(id, pev_movetype);
+
+    if (flags & FL_ONGROUND && flags & FL_INWATER)
+        velocity[2] = 0.0;
+
+    speed[id] = vector_length(velocity);
+
+    if (flags & FL_ONGROUND) {
+        notjump[id] = true;
+    } else if (notjump[id]) {
+        notjump[id] = false;
+    }
+
+    if (movetype == MOVETYPE_FLY) {
+        if (button & (IN_FORWARD | IN_BACK | IN_LEFT | IN_RIGHT)) {
+            ladderjump[id] = true;
+        } else if (button & IN_JUMP) {
+            ladderjump[id] = false;
+            in_air[id] = false;
+            notjump[id] = true;
+        }
+    } else if (ladderjump[id]) {
+        ladderjump[id] = false;
+        in_air[id] = g_Jumped[id] = true;
+        prebhopspeed[id] = 0.0;
+
+        set_hudmessage(0, 60, 255, -1.0, 0.643, 0, 0.02, 1.0, 0.01, 0.1, 4);
+        show_hudmessage(id, "Ladderjump: %d", floatround(speed[id]));
+    }
+
+    if ((button & IN_JUMP) && !(oldbuttons & IN_JUMP) && (flags & FL_ONGROUND)) {
+        bhop_num[id]++;
+        notjump[id] = false;
+        ddnum[id] = 0;
+        in_air[id] = g_Jumped[id] = true;
+
+        if (b_pre_stats[id] && bhop_num[id] > 0) {
+            if (floatround(preladderspeed[id]) > 20) {
+                bhopgainspeed[id] = preladderspeed[id];
+                preladderspeed[id] = 0.0;
+            } else if (bhopgainspeed[id] == 0.0 || bhopgainspeed[id] == speed[id]) {
+                set_hudmessage(5, 60, 255, -1.0, 0.643, 0, 0.0, 1.0, 0.1, 0.1, 4);
+                show_hudmessage(id, "Prestrafe: %d", floatround(speed[id]));
+            }
+        }
+        bhopgainspeed[id] = speed[id];
+    } else if ((flags & FL_ONGROUND) && in_air[id]) {
+        g_reset[id] = true;
+    }
+
+    if (flags & FL_ONGROUND) {
+        if (firstfall_ground[id] && (get_gametime() - FallTime[id] > 0.5)) {
+            ddnum[id] = bhop_num[id] = 0;
+            firstfall_ground[id] = false;
+            prebhopspeed[id] = bhopgainspeed[id] = preladderspeed[id] = 0.0;
+        }
+        if (!firstfall_ground[id]) {
+            FallTime[id] = get_gametime();
+            firstfall_ground[id] = true;
+        }
+    } else if (firstfall_ground[id]) {
+        firstfall_ground[id] = false;
+    }
+
     return FMRES_IGNORED;
 }
 
