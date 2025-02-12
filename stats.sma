@@ -91,11 +91,10 @@ public native_toggle_stats(NumParams){
 }
 
 public client_putinserver(id){
-	b_show_stats[id] = false;
-	b_pre_stats[id] = false;
+	b_show_stats[id] = true;
+	b_pre_stats[id] = true;
 
 	g_userConnected[id] = true;
-	b_pre_stats[id] = false;
 
 	ddnum[id] = 0;
 	bhopgainspeed[id] = 0.0;
@@ -106,13 +105,13 @@ public client_putinserver(id){
 
 public toggle_stats(id){
 	b_show_stats[id] = !b_show_stats[id];
-	CC_SendMessage(id, b_show_stats[id] ? "&x01Stats: &x06ON" : "&x01Stats: &x07OFF");
+	CC_SendMessage(id, "&x01Stats %s", b_show_stats[id] ? "&x06ON" : "&x07OFF");
 }
 
 public toggle_pre(id)
 {
 	b_pre_stats[id] = !b_pre_stats[id];
-	CC_SendMessage(id, b_pre_stats[id] ? "&x01ShowPre: &x06ON" : "&x01ShowPre: &x07OFF");
+	CC_SendMessage(id, "&x01ShowPre %s", b_pre_stats[id] ? "&x06ON" : "&x07OFF");
 }
 
 public fwPlayerStrafe(id, strafes, sync, strafesSync[], strafeLen, frames, goodFrames, Float:gain, overlaps){
