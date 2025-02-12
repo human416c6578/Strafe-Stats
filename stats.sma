@@ -17,8 +17,6 @@ public plugin_init(){
 	register_plugin(PLUGIN, VERSION, AUTHOR);
 
 	register_forward( FM_PlayerPreThink, "fwdPreThink", 0 );
-	RegisterHam(Ham_Spawn, "player", "FwdPlayerSpawn", 1);
-	RegisterHam(Ham_Killed, "player", "FwdPlayerDeath", 1);
 
 	register_clcmd("say /stats", "toggle_stats");
 	register_clcmd("say /pre", "toggle_pre");
@@ -93,13 +91,6 @@ public native_toggle_stats(NumParams){
 public client_putinserver(id){
 	b_show_stats[id] = true;
 	b_pre_stats[id] = false;
-
-	g_userConnected[id] = true;
-
-	ddnum[id] = 0;
-	bhopgainspeed[id] = 0.0;
-	prebhopspeed[id] = 0.0;
-	preladderspeed[id] = 0.0;
 }
 
 
@@ -170,103 +161,31 @@ public fwPlayerStrafe(id, strafes, sync, strafesSync[], strafeLen, frames, goodF
 }
 
 public fwdPreThink(id) {
-    static bool:in_air[33];
+	if (!is_user_alive(id))
+		return FMRES_IGNORED;
 
-    if (!g_userConnected[id] || !g_alive[id])
-        return FMRES_IGNORED;
+	static button;
+	static flags;
+	static oldbuttons;
+	static Float:velocity[3];
+	static Float:speed;
 
-    if (g_reset[id]) {
-        g_reset[id] = g_Jumped[id] = in_air[id] = notjump[id] = ladderjump[id] = false;
-    }
+	button = pev(id, pev_button);
+	flags = pev(id, pev_flags);
+	oldbuttons = pev(id, pev_oldbuttons);
 
-    static button, oldbuttons, flags, movetype;
-    static Float:velocity[3];
+	if(button & IN_JUMP && !(oldbuttons & IN_JUMP))
+	{
+		if(flags & FL_ONGROUND)
+		{
+			pev(id, pev_velocity, velocity);
+			speed = vector_length(velocity);
 
-    button = pev(id, pev_button);
-    flags = pev(id, pev_flags);
-    oldbuttons = pev(id, pev_oldbuttons);
-    pev(id, pev_velocity, velocity);
-    movetype = pev(id, pev_movetype);
+			set_hudmessage(0, 100, 255, -1.0, 0.700, 0, 0.0, 1.0, 0.1, 0.1, 4);
+			ShowSyncHudMsg(id, g_iMainHudSync, "Prestrafe: %.2f", speed);
+		}
+	}
 
-    if (flags & FL_ONGROUND && flags & FL_INWATER)
-        velocity[2] = 0.0;
-
-    speed[id] = vector_length(velocity);
-
-    if (flags & FL_ONGROUND) {
-        notjump[id] = true;
-    } else if (notjump[id]) {
-        notjump[id] = false;
-    }
-
-    if (movetype == MOVETYPE_FLY) {
-        if (button & (IN_FORWARD | IN_BACK | IN_LEFT | IN_RIGHT)) {
-            ladderjump[id] = true;
-        } else if (button & IN_JUMP) {
-            ladderjump[id] = false;
-            in_air[id] = false;
-            notjump[id] = true;
-        }
-    } else if (ladderjump[id]) {
-        ladderjump[id] = false;
-        in_air[id] = g_Jumped[id] = true;
-        prebhopspeed[id] = 0.0;
-
-        set_hudmessage(0, 100, 255, -1.0, 0.700, 0, 0.02, 1.0, 0.01, 0.1, 4);
-        ShowSyncHudMsg(id, g_iMainHudSync, "Ladderjump: %d", floatround(speed[id]));
-    }
-
-    if ((button & IN_JUMP) && !(oldbuttons & IN_JUMP) && (flags & FL_ONGROUND)) {
-        bhop_num[id]++;
-        notjump[id] = false;
-        ddnum[id] = 0;
-        in_air[id] = g_Jumped[id] = true;
-
-        if (b_pre_stats[id] && bhop_num[id] > 0) {
-            if (floatround(preladderspeed[id]) > 20) {
-                bhopgainspeed[id] = preladderspeed[id];
-                preladderspeed[id] = 0.0;
-            } else if (bhopgainspeed[id] == 0.0 || bhopgainspeed[id] == speed[id]) {
-                set_hudmessage(0, 100, 255, -1.0, 0.700, 0, 0.0, 1.0, 0.1, 0.1, 4);
-                ShowSyncHudMsg(id, g_iMainHudSync, "Prestrafe: %d", floatround(speed[id]));
-            }
-        }
-        bhopgainspeed[id] = speed[id];
-    } else if ((flags & FL_ONGROUND) && in_air[id]) {
-        g_reset[id] = true;
-    }
-
-    if (flags & FL_ONGROUND) {
-        if (firstfall_ground[id] && (get_gametime() - FallTime[id] > 0.5)) {
-            ddnum[id] = bhop_num[id] = 0;
-            firstfall_ground[id] = false;
-            prebhopspeed[id] = bhopgainspeed[id] = preladderspeed[id] = 0.0;
-        }
-        if (!firstfall_ground[id]) {
-            FallTime[id] = get_gametime();
-            firstfall_ground[id] = true;
-        }
-    } else if (firstfall_ground[id]) {
-        firstfall_ground[id] = false;
-    }
-
-    return FMRES_IGNORED;
+	return FMRES_IGNORED;
 }
 
-public FwdPlayerSpawn(id)
-{
-    if(is_user_alive(id))
-    {
-        g_alive[id] = true;
-    }
-}
-
-public FwdPlayerDeath(id)
-{
-    g_alive[id] = false;
-}
-
-public client_disconnected(id) {
-    g_userConnected[id] = false;
-    g_alive[id] = false;
-}
