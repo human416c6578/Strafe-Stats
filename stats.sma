@@ -179,6 +179,7 @@ public fwdPreThink(id) {
 		if(flags & FL_ONGROUND)
 		{
 			pev(id, pev_velocity, velocity);
+			velocity[2] = 0.0;
 			speed = vector_length(velocity);
 
 			set_hudmessage(0, 100, 255, -1.0, 0.700, 0, 0.0, 1.0, 0.1, 0.1, 4);
