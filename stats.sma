@@ -92,7 +92,7 @@ public native_toggle_stats(NumParams){
 
 public client_putinserver(id){
 	b_show_stats[id] = true;
-	b_pre_stats[id] = true;
+	b_pre_stats[id] = false;
 
 	g_userConnected[id] = true;
 
