@@ -25,7 +25,8 @@ public plugin_init(){
 
 	g_iMainHudSync = CreateHudSyncObj();
 	g_iStrafeHudSync = CreateHudSyncObj();
-
+	
+	//Chat prefix
 	CC_SetPrefix("&x04[FWO]");
 }
 
@@ -89,18 +90,16 @@ public native_toggle_stats(NumParams){
 }
 
 public client_putinserver(id){
-	b_show_stats[id] = true;
-	b_pre_stats[id] = false;
+	b_show_stats[id] = false; // Set to false so stats are OFF by default when the player joins. The player must enable it manually.
+	b_pre_stats[id] = false; // Set to false so Prestrafe is OFF by default (bhop standard). To have it enabled by default (speedrun standard), change to true.
 }
-
 
 public toggle_stats(id){
 	b_show_stats[id] = !b_show_stats[id];
 	CC_SendMessage(id, "&x01Stats %s", b_show_stats[id] ? "&x06ON" : "&x07OFF");
 }
 
-public toggle_pre(id)
-{
+public toggle_pre(id){
 	b_pre_stats[id] = !b_pre_stats[id];
 	CC_SendMessage(id, "&x01ShowPre %s", b_pre_stats[id] ? "&x06ON" : "&x07OFF");
 }
@@ -152,11 +151,9 @@ public fwPlayerStrafe(id, strafes, sync, strafesSync[], strafeLen, frames, goodF
 		set_hudmessage(200, 22, 22, 0.77, 0.4, 0, 0.0, 2.0, 0.2, 0.2, 4);
 		ShowSyncHudMsg(i, g_iStrafeHudSync, "%s", szStrafesInfo);
 
-
 		set_hudmessage(0, 100, 255, -1.0, 0.6, 0, 0.0, 2.0, 0.2, 0.2, 3);
 		ShowSyncHudMsg(i, g_iMainHudSync, "Strafes: %i^nSync: %i%^nFrames: %d/%d^nGain: %.2f", strafes, sync, goodFrames, frames, gain);
 		//client_print(i, print_console, "Strafes: %i^nSync: %i%^nFrames: %d/%d^nGain: %.2f^nGain/Strafe: %.2f^nGain/GoodFrames: %.2f", strafes, sync, goodFrames, frames, gain, gain/strafes, gain/goodFrames);
-	
 	}
 }
 
@@ -173,20 +170,19 @@ public fwdPreThink(id) {
 	button = pev(id, pev_button);
 	flags = pev(id, pev_flags);
 	oldbuttons = pev(id, pev_oldbuttons);
-
-	if(button & IN_JUMP && !(oldbuttons & IN_JUMP))
+	
+	if(button & IN_JUMP && !(oldbuttons & IN_JUMP)) 
 	{
-		if(flags & FL_ONGROUND)
-		{
+		if(flags & FL_ONGROUND) {
 			pev(id, pev_velocity, velocity);
 			velocity[2] = 0.0;
 			speed = vector_length(velocity);
 
-			set_hudmessage(0, 100, 255, -1.0, 0.700, 0, 0.0, 1.0, 0.1, 0.1, 4);
-			ShowSyncHudMsg(id, g_iMainHudSync, "Prestrafe: %.2f", speed);
+			if (b_pre_stats[id]) {
+				set_hudmessage(0, 100, 255, -1.0, 0.700, 0, 0.0, 1.0, 0.1, 0.1, 4);
+				ShowSyncHudMsg(id, g_iMainHudSync, "Prestrafe: %.2f", speed);
+			}
 		}
 	}
-
 	return FMRES_IGNORED;
 }
-
