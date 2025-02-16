@@ -130,8 +130,8 @@ public fwPlayerStrafe(id, strafes, sync, strafesSync[], strafeLen, frames, goodF
 		*/
 		
 		set_hudmessage(0, 100, 255, -1.0, 0.6, 0, 0.0, 2.0, 0.2, 0.2, 3);
-		ShowSyncHudMsg(id, g_iMainHudSync, "Strafes: %i^nSync: %i%^nGain: %.2f", strafes, sync, gain);
-		
+		ShowSyncHudMsg(id, g_iMainHudSync, "STRAFES: %i / SYNC: %i%%^nGAIN: +%.2f^n", strafes, sync, gain);
+		//OLD DESIGN: ShowSyncHudMsg(id, g_iMainHudSync, "Strafes: %i^nSync: %i%^nGain: %.2f", strafes, sync, gain);
 	}
 
 	for(new i = 1; i < 33; i++)
