@@ -97,7 +97,7 @@ public native_get_bool_pre(NumParams){
 	return b_pre_stats[id];
 }
 
-public native_toggle_stats(NumParams){
+public native_toggle_pre(NumParams){
 	new id = get_param(1);
 	toggle_pre(id);
 }
