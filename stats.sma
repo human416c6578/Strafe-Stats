@@ -41,6 +41,9 @@ public plugin_natives(){
 
 	register_native("get_bool_stats", "native_get_bool_stats");
 	register_native("toggle_stats", "native_toggle_stats");
+
+	register_native("get_bool_pre", "native_get_bool_pre");
+	register_native("toggle_pre", "native_toggle_pre");
 }
 
 public native_get_user_sync(NumParams) {
@@ -87,6 +90,16 @@ public native_get_bool_stats(NumParams){
 public native_toggle_stats(NumParams){
 	new id = get_param(1);
 	toggle_stats(id);
+}
+
+public native_get_bool_pre(NumParams){
+	new id = get_param(1);
+	return b_pre_stats[id];
+}
+
+public native_toggle_stats(NumParams){
+	new id = get_param(1);
+	toggle_pre(id);
 }
 
 public client_putinserver(id){

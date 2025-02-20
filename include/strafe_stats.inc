@@ -10,3 +10,6 @@ native display_stats(id, strafes, sync);
 
 native get_bool_stats(id);
 native toggle_stats(id);
+
+native get_bool_pre(id);
+native toggle_pre(id);
