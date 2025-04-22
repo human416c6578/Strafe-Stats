@@ -27,7 +27,7 @@ public plugin_init(){
 	g_iStrafeHudSync = CreateHudSyncObj();
 	
 	//Chat prefix
-	CC_SetPrefix("&x04[FWO]");
+	//CC_SetPrefix("&x04[FWO]");
 }
 
 public plugin_natives(){
@@ -109,12 +109,12 @@ public client_putinserver(id){
 
 public toggle_stats(id){
 	b_show_stats[id] = !b_show_stats[id];
-	CC_SendMessage(id, "&x01Stats %s", b_show_stats[id] ? "&x06ON" : "&x07OFF");
+	//CC_SendMessage(id, "&x01Stats %s", b_show_stats[id] ? "&x06ON" : "&x07OFF");
 }
 
 public toggle_pre(id){
 	b_pre_stats[id] = !b_pre_stats[id];
-	CC_SendMessage(id, "&x01ShowPre %s", b_pre_stats[id] ? "&x06ON" : "&x07OFF");
+	//CC_SendMessage(id, "&x01ShowPre %s", b_pre_stats[id] ? "&x06ON" : "&x07OFF");
 }
 
 public fwPlayerStrafe(id, strafes, sync, strafesSync[], strafeLen, frames, goodFrames, Float:gain, overlaps){
