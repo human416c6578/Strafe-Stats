@@ -25,8 +25,9 @@ public plugin_init(){
 
 	g_iMainHudSync = CreateHudSyncObj();
 	g_iStrafeHudSync = CreateHudSyncObj();
-
-	CC_SetPrefix("&x04[FWO]");
+	
+	//Chat prefix
+	//CC_SetPrefix("&x04[FWO]");
 }
 
 public plugin_natives(){
@@ -40,6 +41,9 @@ public plugin_natives(){
 
 	register_native("get_bool_stats", "native_get_bool_stats");
 	register_native("toggle_stats", "native_toggle_stats");
+
+	register_native("get_bool_pre", "native_get_bool_pre");
+	register_native("toggle_pre", "native_toggle_pre");
 }
 
 public native_get_user_sync(NumParams) {
@@ -88,21 +92,29 @@ public native_toggle_stats(NumParams){
 	toggle_stats(id);
 }
 
-public client_putinserver(id){
-	b_show_stats[id] = true;
-	b_pre_stats[id] = false;
+public native_get_bool_pre(NumParams){
+	new id = get_param(1);
+	return b_pre_stats[id];
 }
 
+public native_toggle_pre(NumParams){
+	new id = get_param(1);
+	toggle_pre(id);
+}
+
+public client_putinserver(id){
+	b_show_stats[id] = false; // Set to false so stats are OFF by default when the player joins. The player must enable it manually.
+	b_pre_stats[id] = false; // Set to false so Prestrafe is OFF by default (bhop standard). To have it enabled by default (speedrun standard), change to true.
+}
 
 public toggle_stats(id){
 	b_show_stats[id] = !b_show_stats[id];
-	CC_SendMessage(id, "&x01Stats %s", b_show_stats[id] ? "&x06ON" : "&x07OFF");
+	//CC_SendMessage(id, "&x01Stats %s", b_show_stats[id] ? "&x06ON" : "&x07OFF");
 }
 
-public toggle_pre(id)
-{
+public toggle_pre(id){
 	b_pre_stats[id] = !b_pre_stats[id];
-	CC_SendMessage(id, "&x01ShowPre %s", b_pre_stats[id] ? "&x06ON" : "&x07OFF");
+	//CC_SendMessage(id, "&x01ShowPre %s", b_pre_stats[id] ? "&x06ON" : "&x07OFF");
 }
 
 public fwPlayerStrafe(id, strafes, sync, strafesSync[], strafeLen, frames, goodFrames, Float:gain, overlaps){
@@ -131,8 +143,8 @@ public fwPlayerStrafe(id, strafes, sync, strafesSync[], strafeLen, frames, goodF
 		*/
 		
 		set_hudmessage(0, 100, 255, -1.0, 0.6, 0, 0.0, 2.0, 0.2, 0.2, 3);
-		ShowSyncHudMsg(id, g_iMainHudSync, "Strafes: %i^nSync: %i%^nGain: %.2f", strafes, sync, gain);
-		
+		ShowSyncHudMsg(id, g_iMainHudSync, "STRAFES: %i / SYNC: %i%%^nGAIN: +%.2f^n", strafes, sync, gain);
+		//OLD DESIGN: ShowSyncHudMsg(id, g_iMainHudSync, "Strafes: %i^nSync: %i%^nGain: %.2f", strafes, sync, gain);
 	}
 
 	for(new i = 1; i < 33; i++)
@@ -152,11 +164,9 @@ public fwPlayerStrafe(id, strafes, sync, strafesSync[], strafeLen, frames, goodF
 		set_hudmessage(200, 22, 22, 0.77, 0.4, 0, 0.0, 2.0, 0.2, 0.2, 4);
 		ShowSyncHudMsg(i, g_iStrafeHudSync, "%s", szStrafesInfo);
 
-
 		set_hudmessage(0, 100, 255, -1.0, 0.6, 0, 0.0, 2.0, 0.2, 0.2, 3);
 		ShowSyncHudMsg(i, g_iMainHudSync, "Strafes: %i^nSync: %i%^nFrames: %d/%d^nGain: %.2f", strafes, sync, goodFrames, frames, gain);
 		//client_print(i, print_console, "Strafes: %i^nSync: %i%^nFrames: %d/%d^nGain: %.2f^nGain/Strafe: %.2f^nGain/GoodFrames: %.2f", strafes, sync, goodFrames, frames, gain, gain/strafes, gain/goodFrames);
-	
 	}
 }
 
@@ -173,20 +183,19 @@ public fwdPreThink(id) {
 	button = pev(id, pev_button);
 	flags = pev(id, pev_flags);
 	oldbuttons = pev(id, pev_oldbuttons);
-
-	if(button & IN_JUMP && !(oldbuttons & IN_JUMP))
+	
+	if(button & IN_JUMP && !(oldbuttons & IN_JUMP)) 
 	{
-		if(flags & FL_ONGROUND)
-		{
+		if(flags & FL_ONGROUND) {
 			pev(id, pev_velocity, velocity);
 			velocity[2] = 0.0;
 			speed = vector_length(velocity);
 
-			set_hudmessage(0, 100, 255, -1.0, 0.700, 0, 0.0, 1.0, 0.1, 0.1, 4);
-			ShowSyncHudMsg(id, g_iMainHudSync, "Prestrafe: %.2f", speed);
+			if (b_pre_stats[id]) {
+				set_hudmessage(0, 100, 255, -1.0, 0.700, 0, 0.0, 1.0, 0.1, 0.1, 4);
+				ShowSyncHudMsg(id, g_iMainHudSync, "Prestrafe: %.2f", speed);
+			}
 		}
 	}
-
 	return FMRES_IGNORED;
 }
-
