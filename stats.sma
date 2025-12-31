@@ -258,12 +258,12 @@ public fwPlayerStrafe(id, strafes, sync, strafesSync[], strafeLen, frames, goodF
 		{
 			iLen += formatex(szStrafesInfo[iLen], charsmax(szStrafesInfo) - iLen, "Strafe: %i^tSync: %i^n", j + 1, strafesSync[j]);
 		}
-		
+
 		set_hudmessage(200, 22, 22, 0.77, 0.4, 0, 0.0, 2.0, 0.2, 0.2, 4);
 		ShowSyncHudMsg(i, g_iStrafeHudSync, "%s", szStrafesInfo);
 
 		set_hudmessage(0, 100, 255, -1.0, 0.6, 0, 0.0, 2.0, 0.2, 0.2, 3);
-		ShowSyncHudMsg(i, g_iMainHudSync, "Strafes: %i^nSync: %i%^nFrames: %d/%d^nGain: %.2f", strafes, sync, goodFrames, frames, gain);
+		ShowSyncHudMsg(i, g_iMainHudSync, "Strafes: %i / Sync: %i%^nFrames: %d/%d^nGain: %.2f", strafes, sync, goodFrames, frames, gain);
 		if(g_bShowConsole[i]){
 			client_print(id, print_console, "--- Strafe #%i - Sync: %i%% ---", strafes, sync);
 			client_print(id, print_console, "Strafes: %i^nSync: %i%%^nFrames: %d/%d^nGain: %.2f^nGain/Strafe: %.2f^nGain/GoodFrames: %.2f", strafes, sync, goodFrames, frames, gain, gain/strafes, gain/goodFrames);
