@@ -184,92 +184,92 @@ public fwPlayerStrafe(id, strafes, sync, strafesSync[], strafeLen, frames, goodF
 	g_iNativeSync[id] = sync;
 
 	if(strafes < 1) return;
-	
-	if(!g_bShowStats[id]) return;
 
-	// Side list
-	if(g_bShowStrafeList[id]){
-		static szStrafesInfo[32 * MAX_STRAFES], iLen;
-		szStrafesInfo[0] = 0; iLen = 0;
-		for(new i = 0; i < strafeLen && i < MAX_STRAFES; i++)
+	// List of all players who will receive the HUD: player + spectators    
+	new Array:targets = ArrayCreate();
+	
+	if (g_bShowStats[id])
+		ArrayPushCell(targets, id);
+
+	// Add all spectators
+	for (new i = 1; i < 33; i++)
+	{
+		if (!is_user_connected(i) || is_user_alive(i) || !g_bShowStats[i]) continue;
+		
+		if (pev(i, pev_iuser2) == id)
+			ArrayPushCell(targets, i);
+	}
+
+	// Process all targets uniquely
+	for (new t = 0; t < ArraySize(targets); t++)
+	{
+		new target = ArrayGetCell(targets, t);
+
+		// Side list
+		if(g_bShowStrafeList[target])
 		{
-			iLen += formatex(szStrafesInfo[iLen], charsmax(szStrafesInfo) - iLen, "Strafe: %i^tSync: %i^n", i + 1, strafesSync[i]);
+			static szStrafesInfo[32 * MAX_STRAFES], iLen;
+			szStrafesInfo[0] = 0; iLen = 0;
+			for(new j = 0; j < strafeLen && j < MAX_STRAFES; j++)
+				iLen += formatex(szStrafesInfo[iLen], charsmax(szStrafesInfo) - iLen, "Strafe: %i^tSync: %i^n", j + 1, strafesSync[j]);
+			
+			set_hudmessage(200, 22, 22, 0.77, 0.4, 0, 0.0, 2.0, 0.2, 0.2, 4);
+			ShowSyncHudMsg(target, g_iStrafeHudSync, "%s", szStrafesInfo);
 		}
-		
-		set_hudmessage(200, 22, 22, 0.77, 0.4, 0, 0.0, 2.0, 0.2, 0.2, 4);
-		ShowSyncHudMsg(id, g_iStrafeHudSync, "%s", szStrafesInfo);	
-	}
 
-	// Customized center stats
-	static szMain[256]; szMain[0] = 0;
-	
-	if(g_bShowStrafes[id] && g_bShowSync[id] && g_bShowGain[id] && g_bShowFrames[id]){
-		// Original format when everything is ON
-		formatex(szMain, charsmax(szMain), "Strafes: %i / Sync: %i%%^nFrames: %d/%d^nGain: %.2f", strafes, sync, goodFrames, frames, gain);
-	}
-	else{
-		// Customized by removing what's OFF
-		new parts = 0;
+		// Customized center stats for each target
+		static szMain[256]; szMain[0] = 0;
 		
-		if(g_bShowStrafes[id]){
-			parts++;
-			formatex(szMain, charsmax(szMain), "Strafes: %i", strafes);
+		if(g_bShowStrafes[target] && g_bShowSync[target] && g_bShowGain[target] && g_bShowFrames[target]){
+			// Original format when everything is ON
+			formatex(szMain, charsmax(szMain), "Strafes: %i / Sync: %i%%^nFrames: %d/%d^nGain: %.2f", strafes, sync, goodFrames, frames, gain);
 		}
-		
-		if(g_bShowSync[id]){
-			if(parts) add(szMain, charsmax(szMain), " / ");
-			add(szMain, charsmax(szMain), "Sync: ");
-			format(szMain, charsmax(szMain), "%s%i%%", szMain, sync);
-			parts++;
-		}
-		
-		if(g_bShowFrames[id]){
-			if(parts) add(szMain, charsmax(szMain), "^n");
-			format(szMain, charsmax(szMain), "%sFrames: %d/%d", szMain, goodFrames, frames);
-			parts++;
-		}
-		
-		if(g_bShowGain[id]){
-			if(parts) add(szMain, charsmax(szMain), "^n");
-			format(szMain, charsmax(szMain), "%sGain: %.2f", szMain, gain);
-		}
-	}
-
-	if(szMain[0]){
-		set_hudmessage(0, 100, 255, -1.0, 0.6, 0, 0.0, 2.0, 0.2, 0.2, 3);
-		ShowSyncHudMsg(id, g_iMainHudSync, "%s", szMain);
-		if(g_bShowConsole[id]){
-			client_print(id, print_console, "--- Strafe #%i - Sync: %i%% ---", strafes, sync);
-			client_print(id, print_console, "Strafes: %i^nSync: %i%%^nFrames: %d/%d^nGain: %.2f^nGain/Strafe: %.2f^nGain/GoodFrames: %.2f", strafes, sync, goodFrames, frames, gain, gain/strafes, gain/goodFrames);
-			client_print(id, print_console, "----------------------------");
+		else{
+			// Customized by removing what's OFF
+			new parts = 0;
+			
+			if(g_bShowStrafes[target]){
+				parts++;
+				formatex(szMain, charsmax(szMain), "Strafes: %i", strafes);
+			}
+			
+			if(g_bShowSync[target])
+			{
+				if(parts) add(szMain, charsmax(szMain), " / ");
+				add(szMain, charsmax(szMain), "Sync: ");
+				format(szMain, charsmax(szMain), "%s%i%%", szMain, sync);
+				parts++;
+			}
+			
+			if(g_bShowFrames[target])
+			{
+				if(parts) add(szMain, charsmax(szMain), "^n");
+				format(szMain, charsmax(szMain), "%sFrames: %d/%d", szMain, goodFrames, frames);
+				parts++;
+			}
+			
+			if(g_bShowGain[target])
+			{
+				if(parts) add(szMain, charsmax(szMain), "^n");
+				format(szMain, charsmax(szMain), "%sGain: %.2f", szMain, gain);
 			}
 		}
 
-	// Spectators
-	for(new i = 1; i < 33; i++)
-	{
-		if(!is_user_connected(i) || is_user_alive(i) || !g_bShowStats[i]) continue;
-		
-		if(pev(i, pev_iuser2) != id) continue;
-		
-		static szStrafesInfo[32 * MAX_STRAFES], iLen;
-		szStrafesInfo[0] = 0; iLen = 0;
-		for(new j = 0; j < strafeLen && j < MAX_STRAFES; j++)
-		{
-			iLen += formatex(szStrafesInfo[iLen], charsmax(szStrafesInfo) - iLen, "Strafe: %i^tSync: %i^n", j + 1, strafesSync[j]);
+		if(szMain[0]){
+			set_hudmessage(0, 100, 255, -1.0, 0.6, 0, 0.0, 2.0, 0.2, 0.2, 3);
+			ShowSyncHudMsg(target, g_iMainHudSync, "%s", szMain);
 		}
 
-		set_hudmessage(200, 22, 22, 0.77, 0.4, 0, 0.0, 2.0, 0.2, 0.2, 4);
-		ShowSyncHudMsg(i, g_iStrafeHudSync, "%s", szStrafesInfo);
-
-		set_hudmessage(0, 100, 255, -1.0, 0.6, 0, 0.0, 2.0, 0.2, 0.2, 3);
-		ShowSyncHudMsg(i, g_iMainHudSync, "Strafes: %i / Sync: %i%^nFrames: %d/%d^nGain: %.2f", strafes, sync, goodFrames, frames, gain);
-		if(g_bShowConsole[i]){
-			client_print(id, print_console, "--- Strafe #%i - Sync: %i%% ---", strafes, sync);
-			client_print(id, print_console, "Strafes: %i^nSync: %i%%^nFrames: %d/%d^nGain: %.2f^nGain/Strafe: %.2f^nGain/GoodFrames: %.2f", strafes, sync, goodFrames, frames, gain, gain/strafes, gain/goodFrames);
-			client_print(id, print_console, "----------------------------");
+		// Console info
+		if (g_bShowConsole[target])
+		{
+			client_print(target, print_console, "--- Strafe #%i - Sync: %i%% ---", strafes, sync);
+			client_print(target, print_console, "Strafes: %i^nSync: %i%%^nFrames: %d/%d^nGain: %.2f^nGain/Strafe: %.2f^nGain/GoodFrames: %.2f", strafes, sync, goodFrames, frames, gain, gain/strafes, gain/goodFrames);
+			client_print(target, print_console, "----------------------------");
 		}
 	}
+
+	ArrayDestroy(targets);
 }
 
 public fwdPreThink(id) {
