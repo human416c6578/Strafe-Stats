@@ -18,4 +18,4 @@ new bool:g_bShowStrafeList[33];
 new bool:g_bShowConsole[33];
 
 // Prestrafe Toggle
-new bool:g_bPreStats[33];
+new bool:g_bShowPre[33];

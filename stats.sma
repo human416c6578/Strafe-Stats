@@ -97,7 +97,7 @@ public native_toggle_stats(NumParams){
 
 public native_get_bool_pre(NumParams){
 	new id = get_param(1);
-	return g_bPreStats[id];
+	return g_bShowPre[id];
 }
 
 public native_toggle_pre(NumParams){
@@ -107,7 +107,7 @@ public native_toggle_pre(NumParams){
 
 public client_putinserver(id){ 
 	g_bShowStats[id] = false; // Set to false so stats are OFF by default when the player joins. The player must enable it manually.
-	g_bPreStats[id] = false; // Set to false so Prestrafe is OFF by default (bhop standard). To have it enabled by default (speedrun standard), change to true.
+	g_bShowPre[id] = false; // Set to false so Prestrafe is OFF by default (bhop standard). To have it enabled by default (speedrun standard), change to true.
 	g_bShowStrafes[id] = true;
 	g_bShowSync[id] = true;
 	g_bShowGain[id] = true;
@@ -122,8 +122,8 @@ public toggle_stats(id){
 }
 
 public toggle_pre(id){
-	g_bPreStats[id] = !g_bPreStats[id];
-	//CC_SendMessage(id, "&x01ShowPre %s", g_bPreStats[id] ? "&x06ON" : "&x07OFF");
+	g_bShowPre[id] = !g_bShowPre[id];
+	//CC_SendMessage(id, "&x01ShowPre %s", g_bShowPre[id] ? "&x06ON" : "&x07OFF");
 }
 
 public fwPlayerStrafe(id, strafes, sync, strafesSync[], strafeLen, frames, goodFrames, Float:gain, overlaps){
@@ -237,7 +237,7 @@ public fwdPreThink(id) {
 			velocity[2] = 0.0;
 			speed = vector_length(velocity);
 
-			if (g_bPreStats[id]) {
+			if (g_bShowPre[id]) {
 				set_hudmessage(0, 100, 255, -1.0, 0.700, 0, 0.0, 1.0, 0.1, 0.1, 4);
 				ShowSyncHudMsg(id, g_iMainHudSync, "Prestrafe: %.2f", speed);
 			}

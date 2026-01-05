@@ -7,7 +7,7 @@ public StatsMenu(id)
 	formatex(szItem, sizeof(szItem) - 1, "\wStats %s", g_bShowStats[id] ? "\y[ON]" : "\r[OFF]");
 	menu_additem(menu, szItem, "1");
 
-	formatex(szItem, sizeof(szItem) - 1, "\wPre-Strafe %s", g_bPreStats[id] ? "\y[ON]" : "\r[OFF]");
+	formatex(szItem, sizeof(szItem) - 1, "\wPre-Strafe %s", g_bShowPre[id] ? "\y[ON]" : "\r[OFF]");
 	menu_additem(menu, szItem, "2");
 
 	formatex(szItem, sizeof(szItem) - 1, "\wDisplay Settings");
@@ -30,7 +30,7 @@ public StatsMenu_Handler(id, menu, item){
 
 	switch(choice){
 		case 1: g_bShowStats[id] = !g_bShowStats[id];
-		case 2: g_bPreStats[id] = !g_bPreStats[id];
+		case 2: g_bShowPre[id] = !g_bShowPre[id];
 		case 3: {
 			menu_destroy(menu);
 			SettingsMenu(id);
