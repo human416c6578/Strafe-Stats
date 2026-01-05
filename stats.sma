@@ -237,10 +237,29 @@ public fwdPreThink(id) {
 			velocity[2] = 0.0;
 			speed = vector_length(velocity);
 
-			if (g_bShowPre[id]) {
-				set_hudmessage(0, 100, 255, -1.0, 0.700, 0, 0.0, 1.0, 0.1, 0.1, 4);
-				ShowSyncHudMsg(id, g_iMainHudSync, "Prestrafe: %.2f", speed);
+			new Array:targets = ArrayCreate();
+			
+			if (g_bShowPre[id])
+				ArrayPushCell(targets, id);
+
+			// Add all spectators
+			for (new i = 1; i < 33; i++)
+			{
+				if (!is_user_connected(i) || is_user_alive(i) || !g_bShowPre[i]) continue;
+				
+				if (pev(i, pev_iuser2) == id)
+					ArrayPushCell(targets, i);
 			}
+
+			for (new t = 0; t < ArraySize(targets); t++)
+			{
+				new target = ArrayGetCell(targets, t);
+				
+				set_hudmessage(0, 100, 255, -1.0, 0.700, 0, 0.0, 1.0, 0.1, 0.1, 4);
+				ShowSyncHudMsg(target, g_iMainHudSync, "Prestrafe: %.2f", speed);
+			}
+
+			ArrayDestroy(targets);
 		}
 	}
 	return FMRES_IGNORED;
