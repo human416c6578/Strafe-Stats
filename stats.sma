@@ -4,6 +4,7 @@
 #include <hamsandwich>
 #include <cromchat2>
 #include <strafe_globals>
+#include <strafe_menu>
 
 #define PLUGIN "Stats"
 #define VERSION "1.0"
@@ -18,8 +19,8 @@ public plugin_init(){
 
 	register_forward( FM_PlayerPreThink, "fwdPreThink", 0 );
 
-	register_clcmd("say /stats", "toggle_stats");
-	register_clcmd("say /statsmenu", "stats_menu");
+	register_clcmd("say /stats", "StatsMenu");
+	register_clcmd("say /statsmenu", "SettingsMenu");
 
 	register_clcmd("say /pre", "toggle_pre");
 	register_clcmd("say /showpre", "toggle_pre");
@@ -113,59 +114,6 @@ public client_putinserver(id){
 	g_bShowStrafeList[id] = true;
 	g_bShowFrames[id] = true;
 	g_bShowConsole[id] = true;
-}
-
-public stats_menu(id)
-{
-	new menu = menu_create("\r[FWO] \d- \wDisplay Options", "menu_handler");
-	
-	new szItem[64];
-	
-	formatex(szItem, sizeof(szItem) - 1, "\wStrafes %s", g_bShowStrafes[id] ? "\y[ON]" : "\r[OFF]");
-	menu_additem(menu, szItem, "1");
-	
-	formatex(szItem, sizeof(szItem) - 1, "\wSync %s", g_bShowSync[id] ? "\y[ON]" : "\r[OFF]");
-	menu_additem(menu, szItem, "2");
-	
-	formatex(szItem, sizeof(szItem) - 1, "\wGain %s", g_bShowGain[id] ? "\y[ON]" : "\r[OFF]");
-	menu_additem(menu, szItem, "3");
-
-	formatex(szItem, sizeof(szItem) - 1, "\wFrames %s", g_bShowFrames[id] ? "\y[ON]" : "\r[OFF]");
-	menu_additem(menu, szItem, "4");
-	
-	formatex(szItem, sizeof(szItem) - 1, "\wList %s", g_bShowStrafeList[id] ? "\y[ON]" : "\r[OFF]");
-	menu_additem(menu, szItem, "5");
-
-	formatex(szItem, sizeof(szItem) - 1, "\wConsole Info %s", g_bShowConsole[id] ? "\y[ON]" : "\r[OFF]");
-	menu_additem(menu, szItem, "6");
-
-	menu_setprop(menu, MPROP_EXITNAME, "Exit");
-	menu_display(id, menu, 0);
-	return PLUGIN_HANDLED;
-}
-
-public menu_handler(id, menu, item){
-	if(item == MENU_EXIT){
-		menu_destroy(menu);
-		return PLUGIN_HANDLED;
-	}
-
-	new data[6], access, callback;
-	menu_item_getinfo(menu, item, access, data, charsmax(data), _, _, callback);
-	new choice = str_to_num(data);
-
-	switch(choice){
-		case 1: g_bShowStrafes[id] = !g_bShowStrafes[id];
-		case 2: g_bShowSync[id] = !g_bShowSync[id];
-		case 3: g_bShowGain[id] = !g_bShowGain[id];
-		case 4: g_bShowFrames[id] = !g_bShowFrames[id];
-		case 5: g_bShowStrafeList[id] = !g_bShowStrafeList[id];
-		case 6: g_bShowConsole[id] = !g_bShowConsole[id];
-	}
-
-	menu_destroy(menu);
-	stats_menu(id);
-	return PLUGIN_HANDLED;
 }
 
 public toggle_stats(id){
