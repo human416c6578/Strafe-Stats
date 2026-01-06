@@ -38,6 +38,7 @@ public StatsMenu_Handler(id, menu, item){
 		}
 	}
 
+	SaveStatsSettings(id);
 	menu_destroy(menu);
 	StatsMenu(id);
 	return PLUGIN_HANDLED;
@@ -91,7 +92,8 @@ public SettingsMenu_Handler(id, menu, item){
 		case 5: g_bShowStrafeList[id] = !g_bShowStrafeList[id];
 		case 6: g_bShowConsole[id] = !g_bShowConsole[id];
 	}
-
+	
+	SaveStatsSettings(id);
 	menu_destroy(menu);
 	SettingsMenu(id);
 	return PLUGIN_HANDLED;

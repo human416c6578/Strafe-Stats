@@ -19,3 +19,6 @@ new bool:g_bShowConsole[33];
 
 // Prestrafe Toggle
 new bool:g_bShowPre[33];
+
+// Vault ID
+new const g_iVault [] = "stats_settings";

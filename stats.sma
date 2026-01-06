@@ -2,6 +2,7 @@
 #include <engine>
 #include <fakemeta>
 #include <hamsandwich>
+#include <fvault>
 #include <cromchat2>
 #include <strafe_globals>
 #include <strafe_menu>
@@ -114,6 +115,48 @@ public client_putinserver(id){
 	g_bShowStrafeList[id] = true;
 	g_bShowFrames[id] = true;
 	g_bShowConsole[id] = true;
+
+	set_task(1.0, "LoadStatsSettings", id);
+}
+
+public LoadStatsSettings(id){
+	new auth[128], data[256];
+
+	get_user_name(id, auth, charsmax(auth));
+
+	if (fvault_get_data(g_iVault, auth, data, charsmax(data)))
+	{
+		new values[8] [8];
+		explode_string(data, "#", values, sizeof(values), sizeof(values[]));
+
+		g_bShowStats[id] = bool:str_to_num(values[0]);
+		g_bShowPre[id] = bool:str_to_num(values[1]);
+		g_bShowStrafes[id] = bool:str_to_num(values[2]);
+		g_bShowSync[id] = bool:str_to_num(values[3]);
+		g_bShowGain[id] = bool:str_to_num(values[4]);
+		g_bShowStrafeList[id] = bool:str_to_num(values[5]);
+		g_bShowFrames[id] = bool:str_to_num(values[6]);
+		g_bShowConsole[id] = bool:str_to_num(values[7]);
+	}
+}
+
+public SaveStatsSettings(id){
+	if (!is_user_connected(id)) return;
+	
+	new auth[128], data[256];
+	get_user_name(id, auth, charsmax(auth));
+	
+	formatex(data, charsmax(data), "%d#%d#%d#%d#%d#%d#%d#%d",
+		g_bShowStats[id],
+		g_bShowPre[id],
+		g_bShowStrafes[id],
+		g_bShowSync[id],
+		g_bShowGain[id],
+		g_bShowStrafeList[id],
+		g_bShowFrames[id],
+		g_bShowConsole[id]
+	);
+	fvault_set_data(g_iVault, auth, data);
 }
 
 public toggle_stats(id){
