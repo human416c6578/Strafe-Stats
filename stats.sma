@@ -50,7 +50,7 @@ public plugin_natives(){
 	register_native("toggle_pre", "native_toggle_pre");
 }
 
-public native_get_user_sync(NumParams) {
+public native_get_user_sync(NumParams){
 	new id = get_param(1);
 
 	new sync = g_iNativeSync[id];
@@ -59,7 +59,7 @@ public native_get_user_sync(NumParams) {
 	return sync;
 }
 
-public native_get_user_strafes(NumParams) {
+public native_get_user_strafes(NumParams){
 	new id = get_param(1);
 	
 	new strafes = g_iNativeStrafes[id];
@@ -68,18 +68,16 @@ public native_get_user_strafes(NumParams) {
 	return strafes;
 }
 
-public native_display_stats(NumParams) {
+public native_display_stats(NumParams){
 	
 	new id = get_param(1);
 	new strafes = get_param(2);
 	new sync = get_param(3);
 
-	for(new i = 1; i < 33; i++)
-	{
+	for(new i = 1; i < 33; i++){
 		if(!is_user_connected(i) || is_user_alive(i) || !g_bShowStats[i] ) continue;
 		
-		if( pev(i, pev_iuser2) == id )
-		{
+		if( pev(i, pev_iuser2) == id ){
 			set_hudmessage(0, 100, 255, -1.0, 0.6, 0, 0.0, 2.0, 0.2, 0.2, -1);
 			ShowSyncHudMsg(i, g_iMainHudSync, "Strafes: %i^nSync: %i%%", strafes, sync);
 		}
@@ -124,8 +122,7 @@ public LoadStatsSettings(id){
 
 	get_user_name(id, auth, charsmax(auth));
 
-	if (fvault_get_data(g_iVault, auth, data, charsmax(data)))
-	{
+	if (fvault_get_data(g_iVault, auth, data, charsmax(data))){
 		new values[8] [8];
 		explode_string(data, "#", values, sizeof(values), sizeof(values[]));
 
@@ -183,8 +180,7 @@ public fwPlayerStrafe(id, strafes, sync, strafesSync[], strafeLen, frames, goodF
 		ArrayPushCell(targets, id);
 
 	// Add all spectators
-	for (new i = 1; i < 33; i++)
-	{
+	for (new i = 1; i < 33; i++){
 		if (!is_user_connected(i) || is_user_alive(i) || !g_bShowStats[i]) continue;
 		
 		if (pev(i, pev_iuser2) == id)
@@ -192,13 +188,11 @@ public fwPlayerStrafe(id, strafes, sync, strafesSync[], strafeLen, frames, goodF
 	}
 
 	// Process all targets uniquely
-	for (new t = 0; t < ArraySize(targets); t++)
-	{
+	for (new t = 0; t < ArraySize(targets); t++){
 		new target = ArrayGetCell(targets, t);
 
 		// Side list
-		if(g_bShowStrafeList[target])
-		{
+		if(g_bShowStrafeList[target]){
 			static szStrafesInfo[32 * MAX_STRAFES], iLen;
 			szStrafesInfo[0] = 0; iLen = 0;
 			for(new j = 0; j < strafeLen && j < MAX_STRAFES; j++)
@@ -224,23 +218,20 @@ public fwPlayerStrafe(id, strafes, sync, strafesSync[], strafeLen, frames, goodF
 				formatex(szMain, charsmax(szMain), "Strafes: %i", strafes);
 			}
 			
-			if(g_bShowSync[target])
-			{
+			if(g_bShowSync[target]){
 				if(parts) add(szMain, charsmax(szMain), " / ");
 				add(szMain, charsmax(szMain), "Sync: ");
 				format(szMain, charsmax(szMain), "%s%i%%", szMain, sync);
 				parts++;
 			}
 			
-			if(g_bShowFrames[target])
-			{
+			if(g_bShowFrames[target]){
 				if(parts) add(szMain, charsmax(szMain), "^n");
 				format(szMain, charsmax(szMain), "%sFrames: %d/%d", szMain, goodFrames, frames);
 				parts++;
 			}
 			
-			if(g_bShowGain[target])
-			{
+			if(g_bShowGain[target]){
 				if(parts) add(szMain, charsmax(szMain), "^n");
 				format(szMain, charsmax(szMain), "%sGain: %.2f", szMain, gain);
 			}
@@ -252,8 +243,7 @@ public fwPlayerStrafe(id, strafes, sync, strafesSync[], strafeLen, frames, goodF
 		}
 
 		// Console info
-		if (g_bShowConsole[target])
-		{
+		if (g_bShowConsole[target]){
 			client_print(target, print_console, "--- Strafe #%i - Sync: %i%% ---", strafes, sync);
 			client_print(target, print_console, "Strafes: %i^nSync: %i%%^nFrames: %d/%d^nGain: %.2f^nGain/Strafe: %.2f^nGain/GoodFrames: %.2f", strafes, sync, goodFrames, frames, gain, gain/strafes, gain/goodFrames);
 			client_print(target, print_console, "----------------------------");
@@ -263,7 +253,7 @@ public fwPlayerStrafe(id, strafes, sync, strafesSync[], strafeLen, frames, goodF
 	ArrayDestroy(targets);
 }
 
-public fwdPreThink(id) {
+public fwdPreThink(id){
 	if (!is_user_alive(id)) return FMRES_IGNORED;
 
 	static button, flags, oldbuttons;
@@ -273,8 +263,7 @@ public fwdPreThink(id) {
 	flags = pev(id, pev_flags);
 	oldbuttons = pev(id, pev_oldbuttons);
 	
-	if(button & IN_JUMP && !(oldbuttons & IN_JUMP))
-	{
+	if(button & IN_JUMP && !(oldbuttons & IN_JUMP)){
 		if(flags & FL_ONGROUND) {
 			pev(id, pev_velocity, velocity);
 			velocity[2] = 0.0;
@@ -286,16 +275,14 @@ public fwdPreThink(id) {
 				ArrayPushCell(targets, id);
 
 			// Add all spectators
-			for (new i = 1; i < 33; i++)
-			{
+			for (new i = 1; i < 33; i++){
 				if (!is_user_connected(i) || is_user_alive(i) || !g_bShowPre[i]) continue;
 				
 				if (pev(i, pev_iuser2) == id)
 					ArrayPushCell(targets, i);
 			}
 
-			for (new t = 0; t < ArraySize(targets); t++)
-			{
+			for (new t = 0; t < ArraySize(targets); t++){
 				new target = ArrayGetCell(targets, t);
 				
 				set_hudmessage(0, 100, 255, -1.0, 0.700, 0, 0.0, 1.0, 0.1, 0.1, 4);
