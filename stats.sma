@@ -2,12 +2,14 @@
 #include <engine>
 #include <fakemeta>
 #include <hamsandwich>
+#include <fvault>
 #include <cromchat2>
 #include <strafe_globals>
+#include <strafe_menu>
 
 #define PLUGIN "Stats"
 #define VERSION "1.0"
-#define AUTHOR "MrShark45"
+#define AUTHOR "MrShark45 & ftl~"
 
 #define MAX_STRAFES 33
 
@@ -18,7 +20,9 @@ public plugin_init(){
 
 	register_forward( FM_PlayerPreThink, "fwdPreThink", 0 );
 
-	register_clcmd("say /stats", "toggle_stats");
+	register_clcmd("say /stats", "StatsMenu");
+	register_clcmd("say /statsmenu", "SettingsMenu");
+
 	register_clcmd("say /pre", "toggle_pre");
 	register_clcmd("say /showpre", "toggle_pre");
 	register_clcmd("say /prestrafe", "toggle_pre");
@@ -46,7 +50,7 @@ public plugin_natives(){
 	register_native("toggle_pre", "native_toggle_pre");
 }
 
-public native_get_user_sync(NumParams) {
+public native_get_user_sync(NumParams){
 	new id = get_param(1);
 
 	new sync = g_iNativeSync[id];
@@ -55,7 +59,7 @@ public native_get_user_sync(NumParams) {
 	return sync;
 }
 
-public native_get_user_strafes(NumParams) {
+public native_get_user_strafes(NumParams){
 	new id = get_param(1);
 	
 	new strafes = g_iNativeStrafes[id];
@@ -64,18 +68,16 @@ public native_get_user_strafes(NumParams) {
 	return strafes;
 }
 
-public native_display_stats(NumParams) {
+public native_display_stats(NumParams){
 	
 	new id = get_param(1);
 	new strafes = get_param(2);
 	new sync = get_param(3);
 
-	for(new i = 1; i < 33; i++)
-	{
-		if(!is_user_connected(i) || is_user_alive(i) || !b_show_stats[i] ) continue;
+	for(new i = 1; i < 33; i++){
+		if(!is_user_connected(i) || is_user_alive(i) || !g_bShowStats[i] ) continue;
 		
-		if( pev(i, pev_iuser2) == id )
-		{
+		if( pev(i, pev_iuser2) == id ){
 			set_hudmessage(0, 100, 255, -1.0, 0.6, 0, 0.0, 2.0, 0.2, 0.2, -1);
 			ShowSyncHudMsg(i, g_iMainHudSync, "Strafes: %i^nSync: %i%%", strafes, sync);
 		}
@@ -84,7 +86,7 @@ public native_display_stats(NumParams) {
 
 public native_get_bool_stats(NumParams){
 	new id = get_param(1);
-	return b_show_stats[id];
+	return g_bShowStats[id];
 }
 
 public native_toggle_stats(NumParams){
@@ -94,7 +96,7 @@ public native_toggle_stats(NumParams){
 
 public native_get_bool_pre(NumParams){
 	new id = get_param(1);
-	return b_pre_stats[id];
+	return g_bShowPre[id];
 }
 
 public native_toggle_pre(NumParams){
@@ -102,19 +104,66 @@ public native_toggle_pre(NumParams){
 	toggle_pre(id);
 }
 
-public client_putinserver(id){
-	b_show_stats[id] = false; // Set to false so stats are OFF by default when the player joins. The player must enable it manually.
-	b_pre_stats[id] = false; // Set to false so Prestrafe is OFF by default (bhop standard). To have it enabled by default (speedrun standard), change to true.
+public client_putinserver(id){ 
+	g_bShowStats[id] = false; // Set to false so stats are OFF by default when the player joins. The player must enable it manually.
+	g_bShowPre[id] = false; // Set to false so Prestrafe is OFF by default (bhop standard). To have it enabled by default (speedrun standard), change to true.
+	g_bShowStrafes[id] = true;
+	g_bShowSync[id] = true;
+	g_bShowGain[id] = true;
+	g_bShowStrafeList[id] = true;
+	g_bShowFrames[id] = true;
+	g_bShowConsole[id] = true;
+
+	set_task(1.0, "LoadStatsSettings", id);
+}
+
+public LoadStatsSettings(id){
+	new auth[128], data[256];
+
+	get_user_name(id, auth, charsmax(auth));
+
+	if (fvault_get_data(g_iVault, auth, data, charsmax(data))){
+		new values[8] [8];
+		explode_string(data, "#", values, sizeof(values), sizeof(values[]));
+
+		g_bShowStats[id] = bool:str_to_num(values[0]);
+		g_bShowPre[id] = bool:str_to_num(values[1]);
+		g_bShowStrafes[id] = bool:str_to_num(values[2]);
+		g_bShowSync[id] = bool:str_to_num(values[3]);
+		g_bShowGain[id] = bool:str_to_num(values[4]);
+		g_bShowStrafeList[id] = bool:str_to_num(values[5]);
+		g_bShowFrames[id] = bool:str_to_num(values[6]);
+		g_bShowConsole[id] = bool:str_to_num(values[7]);
+	}
+}
+
+public SaveStatsSettings(id){
+	if (!is_user_connected(id)) return;
+	
+	new auth[128], data[256];
+	get_user_name(id, auth, charsmax(auth));
+	
+	formatex(data, charsmax(data), "%d#%d#%d#%d#%d#%d#%d#%d",
+		g_bShowStats[id],
+		g_bShowPre[id],
+		g_bShowStrafes[id],
+		g_bShowSync[id],
+		g_bShowGain[id],
+		g_bShowStrafeList[id],
+		g_bShowFrames[id],
+		g_bShowConsole[id]
+	);
+	fvault_set_data(g_iVault, auth, data);
 }
 
 public toggle_stats(id){
-	b_show_stats[id] = !b_show_stats[id];
-	//CC_SendMessage(id, "&x01Stats %s", b_show_stats[id] ? "&x06ON" : "&x07OFF");
+	g_bShowStats[id] = !g_bShowStats[id];
+	//CC_SendMessage(id, "&x01Stats %s", g_bShowStats[id] ? "&x06ON" : "&x07OFF");
 }
 
 public toggle_pre(id){
-	b_pre_stats[id] = !b_pre_stats[id];
-	//CC_SendMessage(id, "&x01ShowPre %s", b_pre_stats[id] ? "&x06ON" : "&x07OFF");
+	g_bShowPre[id] = !g_bShowPre[id];
+	//CC_SendMessage(id, "&x01ShowPre %s", g_bShowPre[id] ? "&x06ON" : "&x07OFF");
 }
 
 public fwPlayerStrafe(id, strafes, sync, strafesSync[], strafeLen, frames, goodFrames, Float:gain, overlaps){
@@ -123,78 +172,124 @@ public fwPlayerStrafe(id, strafes, sync, strafesSync[], strafeLen, frames, goodF
 	g_iNativeSync[id] = sync;
 
 	if(strafes < 1) return;
-	
-	if(b_show_stats[id]){
-		/*
-		static szStrafesInfo[32 * MAX_STRAFES], iLen;
-		szStrafesInfo = "^0"; iLen = 0;
-		for(new i = 0; i < strafeLen && i < MAX_STRAFES; i++)
-		{
-			iLen += formatex(szStrafesInfo[iLen], charsmax(szStrafesInfo) - iLen, "Strafe: %i^tSync: %i^n",
-				i + 1, strafesSync[i]);
-		}
-	
-		set_hudmessage(200, 22, 22, 0.77, 0.4, 0, 0.0, 2.0, 0.2, 0.2, 4);
-		ShowSyncHudMsg(id, g_iStrafeHudSync, "%s", szStrafesInfo);
 
-		set_hudmessage(0, 100, 255, -1.0, 0.6, 0, 0.0, 2.0, 0.2, 0.2, 3);
-		ShowSyncHudMsg(id, g_iMainHudSync, "Strafes: %i^nSync: %i%^nFrames: %d/%d^nGain: %.2f", strafes, sync, goodFrames, frames, gain);
-		client_print(id, print_console, "Strafes: %i^nSync: %i%^nFrames: %d/%d^nGain: %.2f^nGain/Strafe: %.2f^nGain/GoodFrames: %.2f", strafes, sync, goodFrames, frames, gain, gain/strafes, gain/goodFrames);
-		*/
+	// List of all players who will receive the HUD: player + spectators    
+	new Array:targets = ArrayCreate();
+	
+	if (g_bShowStats[id])
+		ArrayPushCell(targets, id);
+
+	// Add all spectators
+	for (new i = 1; i < 33; i++){
+		if (!is_user_connected(i) || is_user_alive(i) || !g_bShowStats[i]) continue;
 		
-		set_hudmessage(0, 100, 255, -1.0, 0.6, 0, 0.0, 2.0, 0.2, 0.2, 3);
-		ShowSyncHudMsg(id, g_iMainHudSync, "STRAFES: %i / SYNC: %i%%^nGAIN: +%.2f^n", strafes, sync, gain);
-		//OLD DESIGN: ShowSyncHudMsg(id, g_iMainHudSync, "Strafes: %i^nSync: %i%^nGain: %.2f", strafes, sync, gain);
+		if (pev(i, pev_iuser2) == id)
+			ArrayPushCell(targets, i);
 	}
 
-	for(new i = 1; i < 33; i++)
-	{
-		if(!is_user_connected(i) || is_user_alive(i) || !b_show_stats[i] ) continue;
-		
-		if( pev(i, pev_iuser2) != id ) continue
-		
-		static szStrafesInfo[32 * MAX_STRAFES], iLen;
-		szStrafesInfo = "^0"; iLen = 0;
-		for(new j = 0; j < strafeLen && j < MAX_STRAFES; j++)
-		{
-			iLen += formatex(szStrafesInfo[iLen], charsmax(szStrafesInfo) - iLen, "Strafe: %i^tSync: %i^n",
-				i + 1, strafesSync[j]);
+	// Process all targets uniquely
+	for (new t = 0; t < ArraySize(targets); t++){
+		new target = ArrayGetCell(targets, t);
+
+		// Side list
+		if(g_bShowStrafeList[target]){
+			static szStrafesInfo[32 * MAX_STRAFES], iLen;
+			szStrafesInfo[0] = 0; iLen = 0;
+			for(new j = 0; j < strafeLen && j < MAX_STRAFES; j++)
+				iLen += formatex(szStrafesInfo[iLen], charsmax(szStrafesInfo) - iLen, "Strafe: %i^tSync: %i^n", j + 1, strafesSync[j]);
+			
+			set_hudmessage(200, 22, 22, 0.77, 0.4, 0, 0.0, 2.0, 0.2, 0.2, 4);
+			ShowSyncHudMsg(target, g_iStrafeHudSync, "%s", szStrafesInfo);
 		}
 
-		set_hudmessage(200, 22, 22, 0.77, 0.4, 0, 0.0, 2.0, 0.2, 0.2, 4);
-		ShowSyncHudMsg(i, g_iStrafeHudSync, "%s", szStrafesInfo);
+		// Customized center stats for each target
+		static szMain[256]; szMain[0] = 0;
+		
+		if(g_bShowStrafes[target] && g_bShowSync[target] && g_bShowGain[target] && g_bShowFrames[target]){
+			// Original format when everything is ON
+			formatex(szMain, charsmax(szMain), "Strafes: %i / Sync: %i%%^nFrames: %d/%d^nGain: %.2f", strafes, sync, goodFrames, frames, gain);
+		}
+		else{
+			// Customized by removing what's OFF
+			new parts = 0;
+			
+			if(g_bShowStrafes[target]){
+				parts++;
+				formatex(szMain, charsmax(szMain), "Strafes: %i", strafes);
+			}
+			
+			if(g_bShowSync[target]){
+				if(parts) add(szMain, charsmax(szMain), " / ");
+				add(szMain, charsmax(szMain), "Sync: ");
+				format(szMain, charsmax(szMain), "%s%i%%", szMain, sync);
+				parts++;
+			}
+			
+			if(g_bShowFrames[target]){
+				if(parts) add(szMain, charsmax(szMain), "^n");
+				format(szMain, charsmax(szMain), "%sFrames: %d/%d", szMain, goodFrames, frames);
+				parts++;
+			}
+			
+			if(g_bShowGain[target]){
+				if(parts) add(szMain, charsmax(szMain), "^n");
+				format(szMain, charsmax(szMain), "%sGain: %.2f", szMain, gain);
+			}
+		}
 
-		set_hudmessage(0, 100, 255, -1.0, 0.6, 0, 0.0, 2.0, 0.2, 0.2, 3);
-		ShowSyncHudMsg(i, g_iMainHudSync, "Strafes: %i^nSync: %i%^nFrames: %d/%d^nGain: %.2f", strafes, sync, goodFrames, frames, gain);
-		//client_print(i, print_console, "Strafes: %i^nSync: %i%^nFrames: %d/%d^nGain: %.2f^nGain/Strafe: %.2f^nGain/GoodFrames: %.2f", strafes, sync, goodFrames, frames, gain, gain/strafes, gain/goodFrames);
+		if(szMain[0]){
+			set_hudmessage(0, 100, 255, -1.0, 0.6, 0, 0.0, 2.0, 0.2, 0.2, 3);
+			ShowSyncHudMsg(target, g_iMainHudSync, "%s", szMain);
+		}
+
+		// Console info
+		if (g_bShowConsole[target]){
+			client_print(target, print_console, "--- Strafe #%i - Sync: %i%% ---", strafes, sync);
+			client_print(target, print_console, "Strafes: %i^nSync: %i%%^nFrames: %d/%d^nGain: %.2f^nGain/Strafe: %.2f^nGain/GoodFrames: %.2f", strafes, sync, goodFrames, frames, gain, gain/strafes, gain/goodFrames);
+			client_print(target, print_console, "----------------------------");
+		}
 	}
+
+	ArrayDestroy(targets);
 }
 
-public fwdPreThink(id) {
-	if (!is_user_alive(id))
-		return FMRES_IGNORED;
+public fwdPreThink(id){
+	if (!is_user_alive(id)) return FMRES_IGNORED;
 
-	static button;
-	static flags;
-	static oldbuttons;
-	static Float:velocity[3];
-	static Float:speed;
+	static button, flags, oldbuttons;
+	static Float:velocity[3], Float:speed;
 
 	button = pev(id, pev_button);
 	flags = pev(id, pev_flags);
 	oldbuttons = pev(id, pev_oldbuttons);
 	
-	if(button & IN_JUMP && !(oldbuttons & IN_JUMP)) 
-	{
+	if(button & IN_JUMP && !(oldbuttons & IN_JUMP)){
 		if(flags & FL_ONGROUND) {
 			pev(id, pev_velocity, velocity);
 			velocity[2] = 0.0;
 			speed = vector_length(velocity);
 
-			if (b_pre_stats[id]) {
-				set_hudmessage(0, 100, 255, -1.0, 0.700, 0, 0.0, 1.0, 0.1, 0.1, 4);
-				ShowSyncHudMsg(id, g_iMainHudSync, "Prestrafe: %.2f", speed);
+			new Array:targets = ArrayCreate();
+			
+			if (g_bShowPre[id])
+				ArrayPushCell(targets, id);
+
+			// Add all spectators
+			for (new i = 1; i < 33; i++){
+				if (!is_user_connected(i) || is_user_alive(i) || !g_bShowPre[i]) continue;
+				
+				if (pev(i, pev_iuser2) == id)
+					ArrayPushCell(targets, i);
 			}
+
+			for (new t = 0; t < ArraySize(targets); t++){
+				new target = ArrayGetCell(targets, t);
+				
+				set_hudmessage(0, 100, 255, -1.0, 0.700, 0, 0.0, 1.0, 0.1, 0.1, 4);
+				ShowSyncHudMsg(target, g_iMainHudSync, "Prestrafe: %.2f", speed);
+			}
+
+			ArrayDestroy(targets);
 		}
 	}
 	return FMRES_IGNORED;
